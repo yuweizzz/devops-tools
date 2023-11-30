@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: registry
+  template:
+    spec:
+      containers:
+      - image: registry:latest
+        name: registry
+        volumeMounts:
+        - name: configfile
+          mountPath: /etc/docker/registry/
+      volumes:
+        - name: configfile
+          configMap:
+            name: registry-config
