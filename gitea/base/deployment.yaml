@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitea
+  template:
+    metadata:
+      labels:
+        app: gitea
+    spec:
+      containers:
+      - image: gitea/gitea:1.21.1
+        name: gitea
+        env:
+          - name: GITEA__database__DB_TYPE
+            value: mysql
+          - name: GITEA__database__HOST
+            value: localhost:3306
+          - name: GITEA__database__NAME
+            value: gitea
+          - name: GITEA__database__USER
+            value: gitea
+          - name: GITEA__database__PASSWD
+            value: gitea
+      - image: mysql:8
+        name: mysql
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: gitea
+          - name: MYSQL_USER
+            value: gitea
+          - name: MYSQL_PASSWORD
+            value: gitea
+          - name: MYSQL_DATABASE
+            value: gitea
+        ports:
+          - containerPort: 3306
+            name: mysql
