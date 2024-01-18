@@ -37,6 +37,3 @@ spec:
             value: gitea
           - name: MYSQL_DATABASE
             value: gitea
-        ports:
-          - containerPort: 3306
-            name: mysql

@@ -17,3 +17,6 @@ kubectl kustomize gitea/base | kubectl apply -f -
 
 # modify
 # kubectl kustomize gitea/base | kubectl apply -f - --prune -l app="gitea"
+
+# tekton
+# https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
