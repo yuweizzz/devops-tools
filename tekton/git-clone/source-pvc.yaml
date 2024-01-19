@@ -7,7 +7,6 @@ spec:
     requests:
       storage: 100Mi
   volumeMode: Filesystem
-  # need to modify
-  storageClassName: ---
+  storageClassName: local-path
   accessModes:
     - ReadWriteOnce

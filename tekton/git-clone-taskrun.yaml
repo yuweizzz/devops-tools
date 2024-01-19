@@ -1,0 +1,18 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: git-clone-
+spec:
+  taskRef:
+    name: git-clone
+  params:
+    - name: url
+      value: git@gitea.devops:username/repo.git
+  workspaces:
+    - name: output
+      persistentVolumeClaim:
+        claimName: source-pvc
+      subPath: repo
+    - name: ssh-directory
+      secret:
+        secretName: deploy-ssh-credentials

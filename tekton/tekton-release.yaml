@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# replace "gcr.io" to "m.daocloud.io/gcr.io"
+
 apiVersion: v1
 kind: Namespace
 metadata:
