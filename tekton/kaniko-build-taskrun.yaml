@@ -1,0 +1,18 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: kaniko-build-
+spec:
+  taskRef:
+    name: kaniko
+  params:
+    - name: IMAGE
+      value: registry.devops:5000/project/image:v1
+    - name: EXTRA_ARGS
+      value: 
+        - --insecure
+  workspaces:
+    - name: source
+      subPath: repo
+      persistentVolumeClaim:
+        claimName: source-pvc
