@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openldap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openldap
+  template:
+    metadata:
+      labels:
+        app: openldap
+    spec:
+      containers:
+      - image: bitnami/openldap:latest
+        name: openldap
+        env:
+          - name: LDAP_ADMIN_USERNAME
+            value: admin
+          - name: LDAP_ADMIN_PASSWORD
+            value: adminpassword
+          - name: LDAP_USERS
+            value: customuser
+          - name: LDAP_PASSWORDS
+            value: custompassword
+          - name: LDAP_ROOT
+            value: dc=expamle,dc=org
+          - name: LDAP_ADMIN_DN
+            value: cn=admin,dc=expamle,dc=org
+        volumeMounts:
+          - name: data
+            mountPath: /bitnami/openldap
+      - image: dnknth/ldap-ui:latest
+        name: openldap-ui
+        env:
+          - name: LDAP_URL
+            value: ldap://localhost:1389/
+          - name: BASE_DN
+            value: dc=expamle,dc=org
+          - name: BIND_PATTERN
+            value: cn=%s,dc=expamle,dc=org
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: openldap-data

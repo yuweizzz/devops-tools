@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: openldap
+spec:
+  selector:
+    app: openldap
+  ports:
+    - port: 1389
+      name: ldap
+      targetPort: 1389
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openldap-ui
+spec:
+  selector:
+    app: openldap
+  ports:
+    - port: 5000
+      name: ldap-ui
+      targetPort: 5000
