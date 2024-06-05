@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: TaskRun
 metadata:
-  generateName: kaniko-build-
+  generateName: kaniko-
 spec:
   taskRef:
     name: kaniko
@@ -13,6 +13,5 @@ spec:
         - --insecure
   workspaces:
     - name: source
-      subPath: repo
       persistentVolumeClaim:
-        claimName: source-pvc
+        claimName: source
