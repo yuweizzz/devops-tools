@@ -1,5 +1,0 @@
-Host gitea.devops
-    HostName gitea.devops
-    Port 2222
-    User git
-    IdentityFile ~/.ssh/id_rsa

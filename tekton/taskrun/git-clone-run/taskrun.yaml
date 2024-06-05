@@ -7,12 +7,12 @@ spec:
     name: git-clone
   params:
     - name: url
-      value: git@gitea.devops:username/repo.git
+      value: git@github.com:yuweizzz/devops-tools.git
   workspaces:
     - name: output
       persistentVolumeClaim:
-        claimName: source-pvc
+        claimName: source
       subPath: repo
     - name: ssh-directory
       secret:
-        secretName: deploy-ssh-credentials
+        secretName: ssh-credentials
