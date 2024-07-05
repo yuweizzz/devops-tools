@@ -1,10 +1,13 @@
 # https://hub.tekton.dev/tekton/task/git-clone
 # git-clone v0.7
 
+# add namespace
+
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: git-clone
+  namespace: tekton-worker
   labels:
     app.kubernetes.io/version: "0.7"
   annotations:

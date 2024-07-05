@@ -89,17 +89,20 @@ kubectl kustomize registry/overlays/security | kubectl apply -f - --prune -l app
 
 ``` bash
 # Task
-kubectl apply -f tekton/task/git-clone.yaml
+kubectl apply -f tekton/resources/task/git-clone.yaml
 
 # PersistentVolumeClaim
-kubectl apply -f tekton/taskrun/git-clone-run/pvc.yaml
+kubectl apply -f tekton/resources/taskrun/git-clone-run/pvc.yaml
 
 # Secret
-ssh-keygen -t rsa -C "Git Clone Key" -P "" -f tekton/taskrun/git-clone-run/id_rsa
-kubectl create secret generic ssh-credentials --from-file=id_rsa=tekton/taskrun/git-clone-run/id_rsa --from-file=config=tekton/taskrun/git-clone-run/config
+ssh-keygen -t rsa -C "Git Clone Key" -P "" -f tekton/resources/taskrun/git-clone-run/id_rsa
+cp tekton/resources/task/git-clone/config tekton/resources/taskrun/git-clone-run/config
+kubectl create secret generic ssh-credentials \
+  --from-file=id_rsa=tekton/resources/taskrun/git-clone-run/id_rsa \
+  --from-file=config=tekton/resources/taskrun/git-clone-run/config
 
 # TaskRun
-kubectl create -f tekton/taskrun/git-clone-run/taskrun.yaml
+kubectl create -f tekton/resources/taskrun/git-clone-run/taskrun.yaml
 ```
 
 ### TaskRun: kaniko
