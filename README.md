@@ -113,10 +113,9 @@ kubectl create namespace devops
 kubectl kustomize registry/base | kubectl apply -f -
 
 # Task
-kubectl apply -f tekton/task/kaniko.yaml
+kubectl apply -f tekton/resources/task/kaniko.yaml
 
-# PersistentVolumeClaim from git-clone-run
-# kubectl apply -f tekton/taskrun/kaniko-run/pvc.yaml
+# Use persistentVolumeClaim from git-clone-run
 
 # TaskRun
 kubectl create -f tekton/taskrun/kaniko-run/taskrun.yaml
