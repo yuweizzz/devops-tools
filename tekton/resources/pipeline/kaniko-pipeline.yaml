@@ -1,0 +1,45 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: kaniko-pipeline
+spec:
+  params:
+    - name: git-url
+    - name: image
+    - name: kaniko-args
+  workspaces:
+    - name: source-code
+    - name: ssh-directory
+  tasks:
+  - name: clone
+    taskRef:
+      name: git-clone
+    params:
+    - name: url
+      value: $(params.git-url)
+    workspaces:
+    - name: output
+      workspace: source-code
+    - name: ssh-directory
+      workspace: ssh-directory
+  - name: check
+    taskSpec:
+      steps:
+      - name: check-file
+        image: cgr.dev/chainguard/busybox:latest
+        script: ls $(workspaces.source-code.path)
+    runAfter:
+      - clone
+  - name: kaniko-run
+    taskRef:
+      name: kaniko
+    workspaces:
+    - name: source
+      workspace: source-code
+    params:
+    - name: IMAGE
+      value: $(params.image)
+    - name: EXTRA_ARGS
+      value: $(params.kaniko-args)
+    runAfter:
+      - check
