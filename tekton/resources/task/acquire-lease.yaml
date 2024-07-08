@@ -23,6 +23,5 @@ spec:
       echo -------------------------------------------------
       cat lease.yaml
       echo -------------------------------------------------
-      export TIMEOUT=(inputs.params.timeout)
-      kubectl create -f lease.yaml || ( echo "Waiting for lease ..." && kubectl wait --for=delete lease.somegroup.org/pipeline-lease-$(inputs.params.label) --timeout=$TIMEOUT || exit 1 )
+      kubectl create -f lease.yaml || ( echo "Waiting for lease ..." && kubectl wait --for=delete lease.somegroup.org/pipeline-lease-$(inputs.params.label) --timeout=$(inputs.params.timeout) || exit 1 )
       kubectl apply -f lease.yaml
