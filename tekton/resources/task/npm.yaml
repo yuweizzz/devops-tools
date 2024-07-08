@@ -1,0 +1,42 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: npm
+  namespace: tekton-worker
+spec:
+  workspaces:
+    - name: output
+  params:
+    - name: path-context
+      type: string
+      default: "."
+    - name: deps
+      type: string
+    - name: build-cmd
+      type: string
+      default: "npm run build"
+    - name: image
+      type: string
+      default: "docker.io/library/node:16-alpine"
+  steps:
+    - name: npm-run
+      image: $(params.image)
+      workingDir: $(workspaces.output.path)/$(params.path-context)
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        npm config set registry https://registry.npmmirror.com
+        if [ ! -d "/home/node_modules/$(params.path-context)/node_modules" ]; then
+           mkdir -p /home/node_modules/$(params.path-context)/node_modules
+        fi
+        mv /home/node_modules/$(params.path-context)/node_modules $(workspaces.output.path)/$(params.path-context)/node_modules
+        npm install
+        $(params.build-cmd)
+        mv $(workspaces.output.path)/$(params.path-context)/node_modules /home/node_modules/$(params.path-context)/node_modules
+      volumeMounts:
+        - name: deps
+          mountPath: /home/node_modules
+  volumes:
+    - name: deps
+      persistentVolumeClaim:
+        claimName: "$(params.deps)"

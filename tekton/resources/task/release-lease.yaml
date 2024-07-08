@@ -1,0 +1,14 @@
+# modify from https://holly-k-cummins.medium.com/using-lease-resources-to-manage-concurrency-in-tekton-builds-344ba84df297
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: release-lease
+  namespace: tekton-worker
+spec:
+  params:
+  - name: label
+  steps:
+  - name: delete-lease
+    image: m.daocloud.io/docker.io/bitnami/kubectl:1.16.3
+    script: |
+      kubectl delete lease.somegroup.org --ignore-not-found=true --field-selector metadata.name=pipeline-lease-$(inputs.params.label) --selector app=$(inputs.params.label)

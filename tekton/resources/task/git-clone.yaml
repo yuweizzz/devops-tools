@@ -1,6 +1,6 @@
 # https://hub.tekton.dev/tekton/task/git-clone
-# git-clone v0.7
 
+# git-clone v0.7
 # add namespace
 
 apiVersion: tekton.dev/v1beta1

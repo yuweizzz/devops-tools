@@ -1,0 +1,28 @@
+# modify from https://holly-k-cummins.medium.com/using-lease-resources-to-manage-concurrency-in-tekton-builds-344ba84df297
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: acquire-lease
+  namespace: tekton-worker
+spec:
+  params:
+  - name: label
+  - name: timeout
+    type: string
+    default: 20m
+  steps:
+  - name: create-lease
+    image: m.daocloud.io/docker.io/bitnami/kubectl:1.16.3
+    script: |
+      echo "apiVersion: somegroup.org/v1" > lease.yaml
+      echo "kind: Lease" >> lease.yaml
+      echo "metadata:" >> lease.yaml
+      echo "  name: pipeline-lease-$(inputs.params.label)" >> lease.yaml
+      echo "  labels:" >> lease.yaml
+      echo "    app: $(inputs.params.label)" >> lease.yaml
+      echo -------------------------------------------------
+      cat lease.yaml
+      echo -------------------------------------------------
+      export TIMEOUT=(inputs.params.timeout)
+      kubectl create -f lease.yaml || ( echo "Waiting for lease ..." && kubectl wait --for=delete lease.somegroup.org/pipeline-lease-$(inputs.params.label) --timeout=$TIMEOUT || exit 1 )
+      kubectl apply -f lease.yaml

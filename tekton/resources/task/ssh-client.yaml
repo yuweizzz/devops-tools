@@ -8,15 +8,15 @@ spec:
     - name: output
     - name: ssh-directory
   params:
-    - name: sub_dir
+    - name: sub-dir
       type: string
       default: "."
-    - name: dist_dir
+    - name: dist-dir
       type: string
       default: "dist"
     - name: host
       type: string
-    - name: dst_dir
+    - name: dst-dir
       type: string
     - name: image
       type: string
@@ -24,7 +24,7 @@ spec:
   steps:
     - name: ssh-client-run
       image: $(params.image)
-      workingDir: $(workspaces.output.path)/$(params.sub_dir)/$(params.dist_dir)
+      workingDir: $(workspaces.output.path)/$(params.sub-dir)/$(params.dist-dir)
       script: |
         #!/usr/bin/env sh
         set -eu
@@ -34,5 +34,5 @@ spec:
         echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
         ls
         echo
-        ssh -i ~/.ssh/id_rsa work@$(params.host) "ls $(params.dst_dir) || mkdir -p $(params.dst_dir)"
-        scp -rp . work@$(params.host):$(params.dst_dir)
+        ssh -i ~/.ssh/id_rsa work@$(params.host) "ls $(params.dst-dir) || mkdir -p $(params.dst-dir)"
+        scp -rp . work@$(params.host):$(params.dst-dir)

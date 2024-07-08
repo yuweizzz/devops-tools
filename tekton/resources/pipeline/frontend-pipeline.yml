@@ -1,0 +1,77 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: frontend-pipeline
+  namespace: tekton-worker
+spec:
+  params:
+    - name: git-url
+    - name: code-subdir
+    - name: git-revision
+    - name: build-cmd
+    - name: deps-volume
+    - name: lease-label
+  workspaces:
+    - name: source-code
+    - name: ssh-directory
+    - name: upload-ssh-directory
+  tasks:
+  - name: acquire-lease
+    taskRef:
+      name: acquire-lease
+    params:
+    - name: label
+      value: $(params.lease-label)
+  - name: clone
+    taskRef:
+      name: git-clone
+    params:
+    - name: url
+      value: $(params.git-url)
+    - name: revision
+      value: $(params.git-revision)
+    workspaces:
+    - name: output
+      workspace: source-code
+    - name: ssh-directory
+      workspace: ssh-directory
+    runAfter:
+    - acquire-lease
+  - name: build
+    taskRef:
+      name: npm
+    workspaces:
+    - name: output
+      workspace: source-code
+    params:
+    - name: build-cmd
+      value: $(params.build-cmd)
+    - name: path-context
+      value: $(params.code-subdir)
+    - name: deps
+      value: $(params.deps-volume)
+    runAfter: 
+      - clone
+  - name: upload
+    taskRef:
+      name: ssh-client
+    workspaces:
+    - name: output
+      workspace: source-code
+    - name: ssh-directory
+      workspace: upload-ssh-directory
+    params:
+    - name: sub-dir
+      value: $(params.code-subdir)
+    - name: dist-dir
+      value: dist
+    runAfter:
+      - build
+  - name: release-lease
+    taskRef:
+      name: release-lease
+    params:
+    - name: label
+      value: $(params.lease-label)
+    runAfter:
+      - build

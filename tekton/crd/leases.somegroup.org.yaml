@@ -1,0 +1,55 @@
+# modify from https://holly-k-cummins.medium.com/using-lease-resources-to-manage-concurrency-in-tekton-builds-344ba84df297
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: leases.somegroup.org
+spec:
+  group: somegroup.org
+  scope: Namespaced
+  names:
+    kind: Lease
+    plural: leases
+    singular: lease
+    shortNames:
+      - le
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tekton-leases-role
+rules:
+  - apiGroups:
+      - somegroup.org
+    resources:
+      - leases
+    verbs:
+      - get
+      - create
+      - update
+      - patch
+      - delete
+      - watch
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-leases-rolebinding
+  namespace: tekton-worker
+subjects:
+  - kind: ServiceAccount
+    name: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-leases-role
