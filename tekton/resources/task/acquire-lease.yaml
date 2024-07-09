@@ -14,14 +14,14 @@ spec:
   - name: create-lease
     image: m.daocloud.io/docker.io/bitnami/kubectl:1.16.3
     script: |
-      echo "apiVersion: somegroup.org/v1" > lease.yaml
-      echo "kind: Lease" >> lease.yaml
-      echo "metadata:" >> lease.yaml
-      echo "  name: pipeline-lease-$(inputs.params.label)" >> lease.yaml
-      echo "  labels:" >> lease.yaml
-      echo "    app: $(inputs.params.label)" >> lease.yaml
+      echo "apiVersion: somegroup.org/v1" > /tmp/lease.yaml
+      echo "kind: Lease" >> /tmp/lease.yaml
+      echo "metadata:" >> /tmp/lease.yaml
+      echo "  name: pipeline-lease-$(inputs.params.label)" >> /tmp/lease.yaml
+      echo "  labels:" >> /tmp/lease.yaml
+      echo "    app: $(inputs.params.label)" >> /tmp/lease.yaml
       echo -------------------------------------------------
-      cat lease.yaml
+      cat /tmp/lease.yaml
       echo -------------------------------------------------
-      kubectl create -f lease.yaml || ( echo "Waiting for lease ..." && kubectl wait --for=delete lease.somegroup.org/pipeline-lease-$(inputs.params.label) --timeout=$(inputs.params.timeout) || exit 1 )
-      kubectl apply -f lease.yaml
+      kubectl create -f /tmp/lease.yaml || ( echo "Waiting for lease ..." && kubectl wait --for=delete lease.somegroup.org/pipeline-lease-$(inputs.params.label) --timeout=$(inputs.params.timeout) || exit 1 )
+      kubectl apply -f /tmp/lease.yaml
