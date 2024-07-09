@@ -11,6 +11,8 @@ spec:
     - name: build-cmd
     - name: deps-volume
     - name: lease-label
+    - name: deploy-host
+    - name: deploy-dst-dir
   workspaces:
     - name: source-code
     - name: ssh-directory
@@ -65,6 +67,10 @@ spec:
       value: $(params.code-subdir)
     - name: dist-dir
       value: dist
+    - name: host
+      value: $(params.deploy-host)
+    - name: dst-dir
+      value: $(params.deploy-dst-dir)
     runAfter:
       - build
   - name: release-lease
