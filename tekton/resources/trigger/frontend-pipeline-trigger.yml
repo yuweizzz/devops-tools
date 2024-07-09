@@ -1,0 +1,95 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: frontend-pipeline-triggertemplate
+  namespace: tekton-worker
+spec:
+  params:
+    - name: lease-label
+    - name: git-url
+    - name: code-subdir
+    - name: git-revision
+    - name: build-cmd
+    - name: deps-volume
+    - name: deploy-host
+    - name: deploy-dst-dir
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: $(tt.params.lease-label)-
+        namespace: tekton-worker
+      spec:
+        pipelineRef:
+          name: frontend-pipeline
+        params:
+        - name: git-url
+          value: $(tt.params.git-url)
+        - name: code-subdir
+          value: $(tt.params.code-subdir)
+        - name: git-revision
+          value: $(tt.params.git-revision)
+        - name: build-cmd
+          value: $(tt.params.build-cmd)
+        - name: deps-volume
+          value: $(tt.params.deps-volume)
+        - name: deploy-host
+          value: $(tt.params.deploy-host)
+        - name: deploy-dst-dir
+          value: $(tt.params.deploy-dst-dir)
+        workspaces:
+        - name: source-code
+          volumeClaimTemplate:
+            metadata:
+              creationTimestamp: null
+            spec:
+              accessModes:
+              - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 40Mi
+              storageClassName: local-path
+              volumeMode: Filesystem
+        - name: ssh-directory
+          secret:
+            secretName: deploy-ssh-credentials
+        - name: upload-ssh-directory
+          secret:
+            secretName: upload-ssh-credentials
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: frontend-pipeline-pipelinebinding
+  namespace: tekton-worker
+spec:
+  params:
+    - name: lease-label
+      value: $(body.lease-label)
+    - name: git-url
+      value: $(body.git-url)
+    - name: code-subdir
+      value: $(body.code-subdir)
+    - name: git-revision
+      value: $(body.git-revision)
+    - name: build-cmd
+      value: $(body.build-cmd)
+    - name: deps-volume
+      value: $(body.deps-volume)
+    - name: deploy-host
+      value: $(body.deploy-host)
+    - name: deploy-dst-dir
+      value: $(body.deploy-dst-dir)
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: frontend-pipeline-listener
+  namespace: tekton-worker
+spec:
+  serviceAccountName: tekton-triggers-frontend-pipeline-sa
+  triggers:
+    - bindings:
+      - ref: frontend-pipeline-pipelinebinding
+      template:
+        ref: frontend-pipeline-triggertemplate
