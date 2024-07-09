@@ -23,6 +23,8 @@ spec:
         pipelineRef:
           name: frontend-pipeline
         params:
+        - name: lease-label
+          value: $(tt.params.lease-label)
         - name: git-url
           value: $(tt.params.git-url)
         - name: code-subdir
