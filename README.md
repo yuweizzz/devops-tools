@@ -7,6 +7,7 @@
 * [openldap](https://github.com/yuweizzz/devops-tools/tree/master/openldap)
 * [redis](https://github.com/yuweizzz/devops-tools/tree/master/redis)
 * [registry](https://github.com/yuweizzz/devops-tools/tree/master/registry)
+* [victoria-metrics](https://github.com/yuweizzz/devops-tools/tree/master/victoria-metrics)
 
 ## tekton
 
@@ -44,20 +45,4 @@ kubectl apply -f tekton/resources/task/kaniko.yaml
 
 # TaskRun
 kubectl create -f tekton/taskrun/kaniko-run/taskrun.yaml
-```
-
-## victoria-metrics
-
-``` bash
-# create kustomization default namespace
-kubectl create namespace databases
-
-# apply
-kubectl kustomize victoria-metrics/base | kubectl apply -f -
-
-# delete
-kubectl kustomize victoria-metrics/base | kubectl delete -f -
-
-# modify
-kubectl kustomize victoria-metrics/base | kubectl apply -f - --prune -l app="victoria-metrics"
 ```
