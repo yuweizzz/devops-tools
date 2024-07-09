@@ -1,73 +1,12 @@
 # devops-tools
 
-## [gitea](https://github.com/yuweizzz/devops-tools/tree/master/gitea)
+## application
 
-## mysql
-
-``` bash
-# create kustomization default namespace
-kubectl create namespace databases
-
-# apply
-kubectl kustomize mysql/base | kubectl apply -f -
-
-# delete
-kubectl kustomize mysql/base | kubectl delete -f -
-
-# modify
-kubectl kustomize mysql/base | kubectl apply -f - --prune -l app="mysql"
-```
-
-## openldap
-
-``` bash
-# create kustomization default namespace
-kubectl create namespace databases
-
-# apply
-kubectl kustomize openldap/base | kubectl apply -f -
-
-# delete
-kubectl kustomize openldap/base | kubectl delete -f -
-
-# modify
-kubectl kustomize openldap/base | kubectl apply -f - --prune -l app="openldap"
-```
-
-## redis
-
-``` bash
-# create kustomization default namespace
-kubectl create namespace databases
-
-# apply
-kubectl kustomize redis/base | kubectl apply -f -
-
-# delete
-kubectl kustomize redis/base | kubectl delete -f -
-
-# modify
-kubectl kustomize redis/base | kubectl apply -f - --prune -l app="redis"
-```
-
-## registry
-
-``` bash
-# create kustomization default namespace
-kubectl create namespace devops
-
-# apply
-kubectl kustomize registry/base | kubectl apply -f -
-kubectl kustomize registry/overlays/security | kubectl apply -f -
-
-# delete
-kubectl kustomize registry/base | kubectl delete -f -
-kubectl kustomize registry/overlays/security | kubectl delete -f -
-
-# modify
-kubectl kustomize registry/base | kubectl apply -f - --prune -l app="registry"
-kubectl kustomize registry/overlays/security | kubectl apply -f - --prune -l app="registry"
-```
+* [gitea](https://github.com/yuweizzz/devops-tools/tree/master/gitea)
+* [mysql](https://github.com/yuweizzz/devops-tools/tree/master/mysql)
+* [openldap](https://github.com/yuweizzz/devops-tools/tree/master/openldap)
+* [redis](https://github.com/yuweizzz/devops-tools/tree/master/redis)
+* [registry](https://github.com/yuweizzz/devops-tools/tree/master/registry)
 
 ## tekton
 
