@@ -6,6 +6,14 @@ namespace: databases
 commonLabels:
   app: mysql
 
+# generatorOptions:
+#   disableNameSuffixHash: true
+
+images:
+- name: mysql
+  # newName: mysql
+  newTag: 8.0.39-debian
+
 resources:
 - deployment.yaml
 - service.yaml
