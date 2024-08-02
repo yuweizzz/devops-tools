@@ -1,0 +1,35 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: maven
+  namespace: tekton-worker
+spec:
+  workspaces:
+    - name: output
+  params:
+    - name: path-context
+      type: string
+      default: "."
+    - name: maven-repo
+      type: string
+    - name: image
+      type: string
+      default: "gcr.m.daocloud.io/cloud-builders/mvn:3.9.1"
+  steps:
+    - name: maven-run
+      image: $(params.image)
+      workingDir: $(workspaces.output.path)/$(params.path-context)
+      command: ["/usr/bin/mvn"]
+      args:
+        - --settings /home/maven-repo/settings.xml
+        - -Dmaven.test.skip=true
+        - -Dmaven.repo.local=/home/maven-repo
+        - clean
+        - package
+      volumeMounts:
+        - name: maven-repo
+          mountPath: /home/maven-repo
+  volumes:
+    - name: maven-repo
+      persistentVolumeClaim:
+        claimName: "$(params.maven-repo)"

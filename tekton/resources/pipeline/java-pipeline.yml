@@ -1,0 +1,54 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: java-pipeline
+  namespace: tekton-worker
+spec:
+  params:
+  - name: git-url
+  - name: git-revision
+  - name: code-subdir
+  - name: maven-repo
+  workspaces:
+  - name: source-code
+  - name: ssh-directory
+  tasks:
+  - name: clone
+    taskRef:
+      name: git-clone
+    params:
+    - name: url
+      value: $(params.git-url)
+    - name: revision
+      value: $(params.git-revision)
+    workspaces:
+    - name: output
+      workspace: source-code
+    - name: ssh-directory
+      workspace: ssh-directory
+  - name: build
+    runAfter:
+    - clone
+    taskRef:
+      name: maven
+    params:
+    - name: path-context
+      value: $(params.code-subdir)
+    - name: maven-repo
+      value: $(params.maven-repo)
+    workspaces:
+    - name: output
+      workspace: source-code
+  - name: check
+    runAfter:
+      - build
+    taskSpec:
+      metadata: {}
+      spec: null
+      steps:
+        - computeResources: {}
+          image: cgr.dev/chainguard/busybox:latest
+          name: ls-file
+          script: ls $(workspaces.source-code.path)/$(params.code-subdir)
+    workspaces:
+    - name: source-code
