@@ -1,3 +1,4 @@
+---
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
@@ -28,8 +29,7 @@ spec:
     - name: clone
       taskRef:
         name: git-clone
-      runAfter:
-        - acquire-lease
+      runAfter: [acquire-lease]
       params:
         - name: url
           value: $(params.git-url)
@@ -43,8 +43,7 @@ spec:
     - name: build
       taskRef:
         name: npm
-      runAfter:
-        - clone
+      runAfter: [clone]
       workspaces:
         - name: output
           workspace: source-code
@@ -58,8 +57,7 @@ spec:
     - name: upload
       taskRef:
         name: ssh-client
-      runAfter:
-        - build
+      runAfter: [build]
       workspaces:
         - name: output
           workspace: source-code
@@ -71,14 +69,13 @@ spec:
         - name: dist-dir
           value: dist
         - name: host
-          value: ["$(params.deploy-host[*])"]
+          value: ['$(params.deploy-host[*])']
         - name: dst-dir
           value: $(params.deploy-dst-dir)
     - name: release-lease
       taskRef:
         name: release-lease
-      runAfter:
-        - build
+      runAfter: [build]
       params:
         - name: label
           value: $(params.lease-label)
