@@ -7,6 +7,9 @@ spec:
   workspaces:
     - name: output
   params:
+    - name: build-cmd
+      type: array
+      default: []
     - name: path-context
       type: string
       default: "."
@@ -24,8 +27,7 @@ spec:
         - --settings /home/maven-repo/settings.xml
         - -Dmaven.test.skip=true
         - -Dmaven.repo.local=/home/maven-repo
-        - clean
-        - package
+        - "$(params.build-cmd)"
       volumeMounts:
         - name: maven-repo
           mountPath: /home/maven-repo
