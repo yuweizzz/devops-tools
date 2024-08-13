@@ -12,6 +12,7 @@ spec:
     - name: deps-volume
     - name: lease-label
     - name: deploy-host
+      type: array
     - name: deploy-dst-dir
   workspaces:
     - name: source-code
@@ -68,7 +69,7 @@ spec:
     - name: dist-dir
       value: dist
     - name: host
-      value: $(params.deploy-host)
+      value: ["$(params.deploy-host[*])"]
     - name: dst-dir
       value: $(params.deploy-dst-dir)
     runAfter:

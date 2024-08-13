@@ -15,7 +15,8 @@ spec:
       type: string
       default: "dist"
     - name: host
-      type: string
+      type: array
+      default: []
     - name: dst-dir
       type: string
     - name: image
@@ -24,6 +25,7 @@ spec:
   steps:
     - name: ssh-client-run
       image: $(params.image)
+      args: ["$(params.host[*])"]
       workingDir: $(workspaces.output.path)/$(params.sub-dir)/$(params.dist-dir)
       script: |
         #!/usr/bin/env sh
@@ -33,6 +35,9 @@ spec:
         chmod -R 400 ~/.ssh/*
         echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
         ls
-        echo
-        ssh -i ~/.ssh/id_rsa work@$(params.host) "ls $(params.dst-dir) || mkdir -p $(params.dst-dir)"
-        scp -rp . work@$(params.host):$(params.dst-dir)
+        for each in $@ 
+        do
+            echo $each
+            ssh -i ~/.ssh/id_rsa work@$each "ls $(params.dst-dir) || mkdir -p $(params.dst-dir)"
+            scp -rvp . work@$each:$(params.dst-dir)
+        done
