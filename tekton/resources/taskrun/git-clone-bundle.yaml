@@ -1,0 +1,33 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: source
+  namespace: tekton-worker
+spec:
+  resources:
+    requests:
+      storage: 50Mi
+  volumeMode: Filesystem
+  storageClassName: local-path
+  accessModes: [ReadWriteOnce]
+---
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: git-clone-
+  namespace: tekton-worker
+spec:
+  taskRef:
+    name: git-clone
+  params:
+    - name: url
+      value: TBD
+  workspaces:
+    - name: output
+      persistentVolumeClaim:
+        claimName: source
+      subPath: repo
+    - name: ssh-directory
+      secret:
+        secretName: clone-ssh-credentials
