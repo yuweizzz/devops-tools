@@ -89,6 +89,13 @@ kubectl create -f resources/taskrun/git-clone-bundle.yaml
 * `resources/pipeline/javascript-pipeline.yaml`
 * `resources/pipeline/kaniko-pipeline.yaml`
 
+``` bash
+# apply all pipeline
+kubectl apply -f resources/pipeline/java-pipeline.yaml
+kubectl apply -f resources/pipeline/javascript-pipeline.yaml
+kubectl apply -f resources/pipeline/kaniko-pipeline.yaml
+```
+
 #### java-pipeline
 
 java-pipeline 使用了以下参数：
@@ -107,9 +114,9 @@ workspaces 共享克隆密钥和上传密钥，源代码的 workspaces 是各自
 
 实际的 pipeline 过程是 acquire-lease -> clone -> build -> upload/release-lease 。其中 upload 和 release-lease 在 build 成功后会并行执行。但如果这个过程失败导致 lease 没有正常释放，可能要手动删除 lease 后才能重新运行。
 
-项目构建时， maven 实际上会在源代码目录下的 $(params.code-subdir) 中运行构建命令，并且会将依赖存储在 maven-repo 的数据卷中。
+项目构建时， maven 实际上会在源代码目录下的 `$(params.code-subdir)` 中运行构建命令，并且会将依赖存储在 maven-repo 的数据卷中。
 
-在上传过程中，会将 $(params.code-subdir)/$(params.target-dir) 内的文件全量上传到目标机器的 $(params.deploy-dst-dir) 目录。
+在上传过程中，会将 `$(params.code-subdir)/$(params.target-dir)` 内的文件全量上传到目标机器的 `$(params.deploy-dst-dir)` 目录。
 
 #### javascript-pipeline
 
@@ -143,5 +150,9 @@ TODO
 ``` bash
 # 修改对应的参数后直接运行即可
 kubectl create -f resources/pipelinerun/java-pipelinerun.yaml
-kubectl create -f resources/pipelinerun/javascript-pipeline.yaml
+kubectl create -f resources/pipelinerun/javascript-pipelinerun.yaml
 ```
+
+### Trigger
+
+`resources/trigger/event.json` 是 gitlab push event 的请求 body 示例，根据 gitlab 官方文档的 [Payload example](https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#push-events) 修改而来。
