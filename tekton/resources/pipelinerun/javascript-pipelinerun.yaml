@@ -1,0 +1,57 @@
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: TBD-
+  labels:
+    runBy: TBD
+  namespace: tekton-worker
+spec:
+  params:
+    - name: lease-label
+      value: TBD
+    - name: git-url
+      value: TBD
+    - name: code-subdir
+      value: TBD
+    - name: git-revision
+      value: TBD
+    - name: build-cmd
+      value: TBD
+    # default as "dist"
+    - name: dist-dir
+      value: dist
+    - name: deps-volume
+      value: TBD
+    - name: deploy-host
+      value: []
+    - name: deploy-dst-dir
+      value: TBD
+  pipelineRef:
+    name: javascript-pipeline
+  taskRunTemplate:
+    podTemplate:
+      securityContext:
+        runAsUser: 0
+    serviceAccountName: default
+  timeouts:
+    pipeline: 1h0m0s
+  workspaces:
+    - name: source-code
+      volumeClaimTemplate:
+        metadata:
+          creationTimestamp:
+        spec:
+          accessModes: [ReadWriteOnce]
+          resources:
+            requests:
+              storage: 50Mi
+          storageClassName: local-path
+          volumeMode: Filesystem
+        status: {}
+    - name: clone-ssh-directory
+      secret:
+        secretName: TBD
+    - name: upload-ssh-directory
+      secret:
+        secretName: TBD

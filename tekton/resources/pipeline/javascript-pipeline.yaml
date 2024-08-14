@@ -12,6 +12,8 @@ spec:
     - name: build-cmd
     - name: deps-volume
     - name: lease-label
+    - name: dist-dir
+      default: dist
     - name: deploy-host
       type: array
     - name: deploy-dst-dir
@@ -67,7 +69,7 @@ spec:
         - name: sub-dir
           value: $(params.code-subdir)
         - name: dist-dir
-          value: dist
+          value: $(params.dist-dir)
         - name: host
           value: ['$(params.deploy-host[*])']
         - name: dst-dir

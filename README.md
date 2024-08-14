@@ -14,3 +14,5 @@
 * [install](https://github.com/yuweizzz/devops-tools/tree/master/tekton#install)
 * [task](https://github.com/yuweizzz/devops-tools/blob/master/tekton#task)
 * [taskrun](https://github.com/yuweizzz/devops-tools/blob/master/tekton#taskrun)
+* [pipeline](https://github.com/yuweizzz/devops-tools/blob/master/tekton#pipeline)
+* [pipelinerun](https://github.com/yuweizzz/devops-tools/blob/master/tekton#pipelinerun)
