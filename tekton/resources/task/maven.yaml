@@ -24,14 +24,20 @@ spec:
       workingDir: $(workspaces.output.path)/$(params.path-context)
       command: ["/usr/bin/mvn"]
       args:
-        - --settings /home/maven-repo/settings.xml
+        - --settings
+        - /home/settings/settings.xml
         - -Dmaven.test.skip=true
         - -Dmaven.repo.local=/home/maven-repo
         - "$(params.build-cmd)"
       volumeMounts:
         - name: maven-repo
           mountPath: /home/maven-repo
+        - name: maven-settings
+          mountPath: /home/settings
   volumes:
+    - name: maven-settings
+      configmap:
+        name: maven-settings
     - name: maven-repo
       persistentVolumeClaim:
         claimName: "$(params.maven-repo)"
