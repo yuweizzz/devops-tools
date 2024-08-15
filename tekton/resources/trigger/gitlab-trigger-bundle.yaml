@@ -242,6 +242,7 @@ spec:
                 taskSpec:
                   steps:
                     - image: m.daocloud.io/docker.io/bitnami/kubectl:latest
+                      name: create-pipelinerun
                       script: |-
                         set -e
                         # commit message must be '[buildContext][targetDir] commit message'
@@ -276,7 +277,7 @@ spec:
 
                         # cp template and modify
                         cp $(workspaces.build-info.path)/$pipeline /tmp/pipeline.yaml
-                        yq -i '.metadata.generateName = strenv(repositoryName) + "-" + strenv(buildContext) + "-"' /tmp/pipeline.yaml
+                        yq -i '.metadata.generateName = ( strenv(repositoryName) + "-" + strenv(buildContext) + "-" | downcase ) ' /tmp/pipeline.yaml
                         yq -i '.metadata.labels.runBy = strenv(gitUser)' /tmp/pipeline.yaml
 
                         # git-url
@@ -288,7 +289,7 @@ spec:
                         # deps-volume/maven-repo
                         yq -i '.spec.params[4].value = strenv(volume)' /tmp/pipeline.yaml
                         # lease-label
-                        yq -i '.spec.params[5].value = strenv(repositoryName) + "-" + strenv(buildContext)' /tmp/pipeline.yaml
+                        yq -i '.spec.params[5].value = ( strenv(repositoryName) + "-" + strenv(buildContext) | downcase )' /tmp/pipeline.yaml
                         # target-dir
                         yq -i '.spec.params[6].value = strenv(targetDir)' /tmp/pipeline.yaml
                         # deploy-host
@@ -297,11 +298,11 @@ spec:
                         yq -i '.spec.params[8].value = strenv(uploadDir)' /tmp/pipeline.yaml
 
                         # build-cmd
-                        if [ $pipeline == "java-pipelinerun.yaml" ]
+                        if [ $pipeline = "java-pipelinerun.yaml" ]
                         then
                           yq -i '.spec.params[3].value = env(buildCmd)' /tmp/pipeline.yaml
                         fi
-                        if [ $pipeline == "javascript-pipelinerun.yaml" ]
+                        if [ $pipeline = "javascript-pipelinerun.yaml" ]
                         then
                           yq -i '.spec.params[3].value = strenv(buildCmd)' /tmp/pipeline.yaml
                         fi
@@ -310,4 +311,4 @@ spec:
                         yq -i '.spec.workspaces[2].secret.secretName = strenv(uploadSecret)' /tmp/pipeline.yaml
                         cat /tmp/pipeline.yaml
 
-                        # kubectl create -f /tmp/pipeline.yaml
+                        kubectl create -f /tmp/pipeline.yaml
