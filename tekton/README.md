@@ -156,3 +156,9 @@ kubectl create -f resources/pipelinerun/javascript-pipelinerun.yaml
 ### Trigger
 
 `resources/trigger/event.json` 是 gitlab push event 的请求 body 示例，根据 gitlab 官方文档的 [Payload example](https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#push-events) 修改而来。
+
+通过 gitlab 的 push 事件来触发流水线运行需要当前的所有提交信息中，最新的一次提交信息是 `'[buildContext][targetDir] commit message'` 的格式。其中 `buildContext` 用来指定在具体源代码下的哪个子目录，而 `targetDir` 则是 `buildContext` 下的构建后输出的子目录。比如 A 仓库下的 `module` 目录保存了具体的代码，最终构建输出到 `module` 下的 `dist` 中，使用 `[module][dist] message` 就可以正确触发流水线。
+
+其他的构建信息需要在 configmap 中配置，预先定义好各个仓库地址和 pipeline 的关系即可。具体内容包括在 `resources/trigger/gitlab-trigger-bundle.yaml` 中，并且各个流水线的依赖数据卷也需要提前创建。
+
+需要预先在 gitlab 上配置 webhook 地址，就是 eventListener 的监听地址。可以通过 `curl -v -H 'X-GitLab-Token: gitlab-secret' -H 'X-Gitlab-Event: Push Hook' -H 'Content-Type: application/json' --data-binary "@event.json" http://el-gitlab-eventlistener.tekton-worker:8080` 模拟推送事件。
