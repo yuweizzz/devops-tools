@@ -10,17 +10,17 @@ spec:
   params:
     - name: git-url
       value: TBD
-    - name: git-revision
-      value: TBD
-    - name: maven-repo
-      value: TBD
     - name: code-subdir
       value: TBD
-    - name: target-dir
+    - name: git-revision
       value: TBD
     - name: build-cmd
       value: []
+    - name: maven-repo
+      value: TBD
     - name: lease-label
+      value: TBD
+    - name: target-dir
       value: TBD
     - name: deploy-host
       value: []

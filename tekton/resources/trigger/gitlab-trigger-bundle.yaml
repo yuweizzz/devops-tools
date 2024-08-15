@@ -1,0 +1,313 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitlab-secret
+  namespace: tekton-worker
+type: Opaque
+stringData:
+  secretToken: "gitlab-secret"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gitlab-trigger-sa
+  namespace: tekton-worker
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-eventlistener-binding
+  namespace: tekton-worker
+subjects:
+- kind: ServiceAccount
+  name: gitlab-trigger-sa
+  namespace: tekton-worker
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-eventlistener-roles
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gitlab-eventlistener-clusterbinding
+  namespace: tekton-worker
+subjects:
+- kind: ServiceAccount
+  name: gitlab-trigger-sa
+  namespace: tekton-worker
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-eventlistener-clusterroles
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: build-info
+  namespace: tekton-worker
+data:
+  build.conf: |-
+    "git@example.com:mike/java.git":
+      pipeline: java-pipelinerun.yaml
+      cloneSecret: clone-ssh-credentials
+      volume: maven-repo
+      buildCmd:
+        - clean
+        - package
+      uploadHost:
+        - 192.168.1.2
+        - 192.168.1.3
+      uploadDir: /tmp/java
+      uploadSecret: upload-ssh-credentials
+    "git@example.com:mike/javascript.git":
+      pipeline: javascript-pipelinerun.yaml
+      cloneSecret: clone-ssh-credentials
+      buildCmd: "npm run build"
+      volume: node-deps
+      uploadHost:
+        - 192.168.1.2
+      uploadDir: /tmp/javascript
+      uploadSecret: upload-ssh-credentials
+  java-pipelinerun.yaml: |-
+    apiVersion: tekton.dev/v1
+    kind: PipelineRun
+    metadata:
+      generateName: TBD-
+      labels:
+        runBy: TBD
+      namespace: tekton-worker
+    spec:
+      params:
+        - name: git-url
+          value: TBD
+        - name: code-subdir
+          value: TBD
+        - name: git-revision
+          value: TBD
+        - name: build-cmd
+          value: []
+        - name: maven-repo
+          value: TBD
+        - name: lease-label
+          value: TBD
+        - name: target-dir
+          value: TBD
+        - name: deploy-host
+          value: []
+        - name: deploy-dst-dir
+          value: TBD
+      pipelineRef:
+        name: java-pipeline
+      taskRunTemplate:
+        serviceAccountName: default
+      timeouts:
+        pipeline: 1h0m0s
+      workspaces:
+        - name: source-code
+          volumeClaimTemplate:
+            metadata:
+              creationTimestamp:
+            spec:
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 50Mi
+              storageClassName: local-path
+              volumeMode: Filesystem
+            status: {}
+        - name: clone-ssh-directory
+          secret:
+            secretName: TBD
+        - name: upload-ssh-directory
+          secret:
+            secretName: TBD
+  javascript-pipelinerun.yaml: |-
+    apiVersion: tekton.dev/v1
+    kind: PipelineRun
+    metadata:
+      generateName: TBD-
+      labels:
+        runBy: TBD
+      namespace: tekton-worker
+    spec:
+      params:
+        - name: git-url
+          value: TBD
+        - name: code-subdir
+          value: TBD
+        - name: git-revision
+          value: TBD
+        - name: build-cmd
+          value: TBD
+        - name: deps-volume
+          value: TBD
+        - name: lease-label
+          value: TBD
+        - name: dist-dir
+          value: TBD
+        - name: deploy-host
+          value: []
+        - name: deploy-dst-dir
+          value: TBD
+      pipelineRef:
+        name: javascript-pipeline
+      taskRunTemplate:
+        podTemplate:
+          securityContext:
+            runAsUser: 0
+        serviceAccountName: default
+      timeouts:
+        pipeline: 1h0m0s
+      workspaces:
+        - name: source-code
+          volumeClaimTemplate:
+            metadata:
+              creationTimestamp:
+            spec:
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 50Mi
+              storageClassName: local-path
+              volumeMode: Filesystem
+            status: {}
+        - name: clone-ssh-directory
+          secret:
+            secretName: TBD
+        - name: upload-ssh-directory
+          secret:
+            secretName: TBD
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: gitlab-eventlistener
+  namespace: tekton-worker
+spec:
+  serviceAccountName: gitlab-trigger-sa
+  triggers:
+    - name: gitlab-push-events-trigger
+      interceptors:
+        - name: verify-gitlab-payload
+          ref:
+            name: gitlab
+            kind: ClusterInterceptor
+          params:
+            - name: secretRef
+              value:
+                secretName: gitlab-secret
+                secretKey: "secretToken"
+            - name: eventTypes
+              value:
+                - "Push Hook"
+        - name: get-commit-message
+          ref:
+            name: cel
+          params:
+            - name: overlays
+              value:
+              - key: git-newest-commit-message
+                expression: "body.commits[size(body.commits)-1].message"
+      bindings:
+        - name: git-revision
+          value: $(body.checkout_sha)
+        - name: git-repository-name
+          value: $(body.repository.name)
+        - name: git-repository-url
+          value: $(body.repository.git_ssh_url)
+        - name: git-user
+          value: $(body.user_username)
+        - name: git-newest-commit-message
+          value: $(extensions.git-newest-commit-message)
+      template:
+        spec:
+          params:
+            - name: git-revision
+            - name: git-repository-name
+            - name: git-repository-url
+            - name: git-user
+            - name: git-newest-commit-message
+          resourcetemplates:
+            - apiVersion: tekton.dev/v1beta1
+              kind: TaskRun
+              metadata:
+                generateName: gitlab-run-
+              spec:
+                serviceAccountName: gitlab-trigger-sa
+                workspaces:
+                  - name: build-info
+                    configmap:
+                      name: build-info
+                taskSpec:
+                  steps:
+                    - image: m.daocloud.io/docker.io/bitnami/kubectl:latest
+                      script: |-
+                        set -e
+                        # commit message must be '[buildContext][targetDir] commit message'
+                        export buildContext=`echo $(tt.params.git-newest-commit-message) | sed -nE 's/^\[(.*)\]\[(.*)\].*$/\1/p'`
+                        if [ -z $buildContext ]
+                        then
+                          echo "buildContext not found, no need to run pipeline."
+                          exit 0
+                        fi
+
+                        export targetDir=`echo $(tt.params.git-newest-commit-message) | sed -nE 's/^\[(.*)\]\[(.*)\].*$/\2/p'`
+                        if [ -z $targetDir ]
+                        then
+                          echo "targetDir not found, unable to run pipeline."
+                          exit 0
+                        fi
+
+                        # Read from params
+                        export gitUrl=$(tt.params.git-repository-url)
+                        export repositoryName=$(tt.params.git-repository-name)
+                        export gitUser=$(tt.params.git-user)
+                        export gitRevision=$(tt.params.git-revision)
+
+                        # Read from configmap
+                        export pipeline=`yq '.[strenv(gitUrl)].pipeline' $(workspaces.build-info.path)/build.conf`
+                        export cloneSecret=`yq '.[strenv(gitUrl)].cloneSecret' $(workspaces.build-info.path)/build.conf`
+                        export uploadSecret=`yq '.[strenv(gitUrl)].uploadSecret' $(workspaces.build-info.path)/build.conf`
+                        export volume=`yq '.[strenv(gitUrl)].volume' $(workspaces.build-info.path)/build.conf`
+                        export buildCmd=`yq '.[strenv(gitUrl)].buildCmd' $(workspaces.build-info.path)/build.conf`
+                        export uploadHost=`yq '.[strenv(gitUrl)].uploadHost' $(workspaces.build-info.path)/build.conf`
+                        export uploadDir=`yq '.[strenv(gitUrl)].uploadDir' $(workspaces.build-info.path)/build.conf`
+
+                        # cp template and modify
+                        cp $(workspaces.build-info.path)/$pipeline /tmp/pipeline.yaml
+                        yq -i '.metadata.generateName = strenv(repositoryName) + "-" + strenv(buildContext) + "-"' /tmp/pipeline.yaml
+                        yq -i '.metadata.labels.runBy = strenv(gitUser)' /tmp/pipeline.yaml
+
+                        # git-url
+                        yq -i '.spec.params[0].value = strenv(gitUrl)' /tmp/pipeline.yaml
+                        # code-subdir
+                        yq -i '.spec.params[1].value = strenv(buildContext)' /tmp/pipeline.yaml
+                        # git-revision
+                        yq -i '.spec.params[2].value = strenv(gitRevision)' /tmp/pipeline.yaml
+                        # deps-volume/maven-repo
+                        yq -i '.spec.params[4].value = strenv(volume)' /tmp/pipeline.yaml
+                        # lease-label
+                        yq -i '.spec.params[5].value = strenv(repositoryName) + "-" + strenv(buildContext)' /tmp/pipeline.yaml
+                        # target-dir
+                        yq -i '.spec.params[6].value = strenv(targetDir)' /tmp/pipeline.yaml
+                        # deploy-host
+                        yq -i '.spec.params[7].value = env(uploadHost)' /tmp/pipeline.yaml
+                        # deploy-dst-dir
+                        yq -i '.spec.params[8].value = strenv(uploadDir)' /tmp/pipeline.yaml
+
+                        # build-cmd
+                        if [ $pipeline == "java-pipelinerun.yaml" ]
+                        then
+                          yq -i '.spec.params[3].value = env(buildCmd)' /tmp/pipeline.yaml
+                        fi
+                        if [ $pipeline == "javascript-pipelinerun.yaml" ]
+                        then
+                          yq -i '.spec.params[3].value = strenv(buildCmd)' /tmp/pipeline.yaml
+                        fi
+
+                        yq -i '.spec.workspaces[1].secret.secretName = strenv(cloneSecret)' /tmp/pipeline.yaml
+                        yq -i '.spec.workspaces[2].secret.secretName = strenv(uploadSecret)' /tmp/pipeline.yaml
+                        cat /tmp/pipeline.yaml
+
+                        # kubectl create -f /tmp/pipeline.yaml

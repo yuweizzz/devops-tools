@@ -8,8 +8,6 @@ metadata:
   namespace: tekton-worker
 spec:
   params:
-    - name: lease-label
-      value: TBD
     - name: git-url
       value: TBD
     - name: code-subdir
@@ -18,10 +16,11 @@ spec:
       value: TBD
     - name: build-cmd
       value: TBD
-    # default as "dist"
-    - name: dist-dir
-      value: dist
     - name: deps-volume
+      value: TBD
+    - name: lease-label
+      value: TBD
+    - name: dist-dir
       value: TBD
     - name: deploy-host
       value: []
