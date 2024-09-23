@@ -1,0 +1,10 @@
+services:
+  nginx:
+    image: docker.registry.cyou/macbre/nginx-http3:1.27.1
+    volumes:
+      - ./https.conf:/etc/nginx/conf.d/https.conf
+      - ./localhost.crt:/etc/nginx/ssl/localhost.crt
+      - ./localhost.key:/etc/nginx/ssl/localhost.key
+    ports:
+      - '4443:4443/tcp'
+      - '4443:4443/udp'
